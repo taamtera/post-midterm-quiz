@@ -96,7 +96,44 @@ class Table:
                 aggregate_val_list.append(aggregate_val)
             pivot_table.append([item, aggregate_val_list])
         return pivot_table
+    def insert_row(self, dict):
+        self.table.append(dict)
+
+    def update_row(self, primary_attribute, primary_attribute_value, update_attribute, update_value):
+        for item in self.table:
+            if item[primary_attribute] == primary_attribute_value:
+                item[update_attribute] = update_value
+                print(item , 'has been updated')
 
     def __str__(self):
         return self.table_name + ':' + str(self.table)
 
+
+Movies = []
+with open(os.path.join(__location__, 'Movies.csv')) as f:
+    rows = csv.DictReader(f)
+    for r in rows:
+        Movies.append(dict(r))
+        
+db = DB()
+db.insert(Table('Movies',Movies))
+tb1 = db.search('Movies')
+tb1f1 = tb1.filter(lambda x: x['Genre'] == 'Comedy').aggregate(lambda x: sum(x)/len(x), 'Worldwide Gross')
+print("The average value of ‘Worldwide Gross’ for ‘Comedy’ movies is: ", f'{tb1f1:.2f}')
+tb1f2 = tb1.filter(lambda x: x['Genre']== 'Comedy').aggregate(lambda x: min(x), 'Audience score %')
+print("The minimum ‘Audience score %’ for ‘Drama’ movies is: ", f'{tb1f2:.2f}')
+tb1f3 = tb1.filter(lambda x: x['Genre']== 'Fantasy').aggregate(lambda x: len(x),'Film')
+print('the number of ‘Fantasy’ movie before:', tb1f3)
+dict = {}
+dict['Film'] = 'The Shape of Water'
+dict['Genre'] = 'Fantasy'
+dict['Lead Studio'] = 'Fox'
+dict['Audience score %'] = '72'
+dict['Profitability'] = '9.765'
+dict['Rotten Tomatoes %'] = '92'
+dict['Worldwide Gross'] = '195.3'
+dict['Year'] = '2017'
+tb1.insert_row(dict)
+tb1f4 = tb1.filter(lambda x: x['Genre'] == 'Fantasy').aggregate(lambda x: len(x),'Film')
+print('the number of ‘Fantasy’ movie after:', tb1f4)
+tb1.update_row('Film', 'A Serious Man', 'Year', '2022')
